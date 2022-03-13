@@ -1,12 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const dbJson = require('./db/db.json');
-const uuidv1 = require('uuidv1');
-const res = require('express/lib/response');
-const { application } = require('express');
-const app = express();
+const dbJSON = require('./db/db.json');
+const { v4: uuidv4} = require('uuid');
+//const res = require('express/lib/response');
 const PORT = process.env.PORT || 3001;
+const app = express();
 
 //parse incoming array/string data
 app.use(express.urlencoded({ extended: true}));
@@ -16,22 +15,22 @@ app.use(express.static("public"));
 
 //API routes
 //Setting routes for APIs
-app.get('/notes', (re, res) => {
-    res.sendFile(path.join(__dirname, '.public/notes.html'));
+app.get('/notes', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
 //GET handler to access info on db JSON
-app.get('/api/notes', (req, yes) => {
+app.get('/api/notes', (req, res) => {
     const notes = fs.readFileSync(path.join(__dirname, './db/db.json'), "utf-8");
     const notesParse = JSON.parse(notes);
     res.json(notesParse);
 });
 
 //POST handler to add new notes to db JSON
-app.post('/api/notes', (req, yes) => {
+app.post('/api/notes', (req, res) => {
     const notes = fs.readFileSync(path.join(__dirname, './db/db.json'), "utf-8");
     const notesParse = JSON.parse(notes);
-    req.body.id = uuidv1()
+    req.body.id = uuidv4()
     notesParse.push(req.body);
 
     fs.writeFileSync(path.join(__dirname, './db/db.json'), JSON.stringify(notesParse), "utf-8");
@@ -39,33 +38,37 @@ app.post('/api/notes', (req, yes) => {
 });
 
 //WILDCARD handler
-app.get('*', (re, res) => {
-    res.sendFile(path.join(__dirname, '.public/index.html'));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
-//DELETE note handler
+//DELETE function - could not get to work. iceboxed
 app.delete("/api/notes/:id", function (req, res) {
-    console.log(uuidv1())
+    console.log(uuidv4())
     console.log("Req.params:", req.params);
+    const { parse: uuidParse } = require('uuid');
     let notesDeleted = parseInt(req.params.id);
     console.log(notesDeleted);
 
-    for (let i = 0; i < dbJson.length; i++) {
-        if (notesDeleted === dbJson[i].id) {
-            dbJson.splice(i, 1);
-    
-            let notesJson = JSON.stringify(dbJson, null, 2);
+    for (let i = 0; i < dbJSON.length; i++) {
+        //console.log(dbJSON);
+        console.log(dbJSON[i]);
+        if (notesDeleted === uuidParse(dbJSON[i].id)) {
+            dbJSON.splice(i, 1);
+            //dbJSON = dbJSON.splice(i, 1);
+            console.log("howdy this works");
+
+            let notesJson = JSON.stringify(dbJSON, null, 2);
+            console.log(notesJson);
             fs.writeFile("./db/db.json", notesJson, function (err) {
                 if (err) throw err;
                 console.log("Your note has been deleted!");
-                res.json(dbJson);
+                res.json(dbJSON);
             });
         }
     }
 });     
-//
-
 //PORT console display
 app.listen(PORT, () => {
-    console.log(`server listening on port ${PORT}!`);
+    console.log(`server listening at http://localhost:${PORT}`);
 });
