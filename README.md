@@ -24,7 +24,7 @@ This is an app that can write and save notes using back end integration with a f
 
 2. install dependencies via 'npm i'
 
-3. go to deployed link via Heroku: 
+3. go to deployed link via Heroku: https://sheltered-meadow-12372.herokuapp.com/
 
 4. click "Get Started" on main html page to access note pages.
 
